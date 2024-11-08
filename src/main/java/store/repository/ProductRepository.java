@@ -18,20 +18,32 @@ public class ProductRepository {
     }
 
     private void processLine(String line) {
-        String[] data = line.split(",");
-        String name = data[0];
-        int price = Integer.parseInt(data[1]);
-        int quantity = Integer.parseInt(data[2]);
-        String promotion = getPromotionValue(data);
-
-        products.add(new Product(name, price, quantity, promotion));
+        String[] data = validateProductData(line);
+        products.add(createProduct(data));
     }
 
-    private String getPromotionValue(String[] data) {
-        if (data.length > 3) {
-            return data[3];
+    private String[] validateProductData(String line) {
+        String[] data = line.split(",");
+        if (data.length < 3) {
+            throw new IllegalArgumentException("잘못된 상품 데이터 형식입니다: " + line);
         }
-        return null;
+        return data;
+    }
+
+    private Product createProduct(String[] data) {
+        String name = data[0];
+        int price = parseInteger(data[1], "상품 가격");
+        int quantity = parseInteger(data[2], "상품 수량");
+        String promotion = data.length > 3 ? data[3] : null;
+        return new Product(name, price, quantity, promotion);
+    }
+
+    private int parseInteger(String value, String fieldName) {
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException(fieldName + "의 숫자 형식이 잘못되었습니다: " + value, e);
+        }
     }
 
     public List<Product> getProducts() {
