@@ -1,6 +1,7 @@
 package store.parser;
 
 import store.domain.Promotion;
+import store.domain.PromotionType;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
@@ -26,7 +27,18 @@ public class PromotionParser {
         int freeQuantity = parseInteger(data[2], "프로모션 무료 제공 수량");
         LocalDate startDate = parseDate(data[3], "프로모션 시작일");
         LocalDate endDate = parseDate(data[4], "프로모션 종료일");
-        return new Promotion(name, buyQuantity, freeQuantity, startDate, endDate);
+
+        PromotionType type = getPromotionType(buyQuantity, freeQuantity);
+        return new Promotion(name, type, startDate, endDate);
+    }
+
+    private PromotionType getPromotionType(int buyQuantity, int freeQuantity) {
+        if (buyQuantity == 1 && freeQuantity == 1) {
+            return PromotionType.BUY_ONE_GET_ONE_FREE;
+        } else if (buyQuantity == 2 && freeQuantity == 1) {
+            return PromotionType.BUY_TWO_GET_ONE_FREE;
+        }
+        throw new IllegalArgumentException("지원하지 않는 프로모션 타입입니다: " + buyQuantity + "+" + freeQuantity);
     }
 
     private int parseInteger(String value, String fieldName) {

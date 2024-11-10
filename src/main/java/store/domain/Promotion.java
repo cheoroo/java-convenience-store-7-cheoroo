@@ -4,18 +4,37 @@ import java.time.LocalDate;
 import java.util.Objects;
 
 public class Promotion {
-    private String name;
-    private int buyQuantity;
-    private int freeQuantity;
-    private LocalDate startDate;
-    private LocalDate endDate;
+    private final String name;
+    private final PromotionType type;
+    private final LocalDate startDate;
+    private final LocalDate endDate;
 
-    public Promotion(String name, int buyQuantity, int freeQuantity, LocalDate startDate, LocalDate endDate) {
+    public Promotion(String name, PromotionType type, LocalDate startDate, LocalDate endDate) {
         this.name = name;
-        this.buyQuantity = buyQuantity;
-        this.freeQuantity = freeQuantity;
+        this.type = type;
         this.startDate = startDate;
         this.endDate = endDate;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public PromotionType getType() {
+        return type;
+    }
+
+    public boolean isValidToday() {
+        LocalDate today = LocalDate.now();
+        return !today.isBefore(startDate) && !today.isAfter(endDate);
+    }
+
+    public int calculateDiscount(int quantity, int pricePerUnit) {
+        return type.calculateDiscount(quantity, pricePerUnit);
+    }
+
+    public int getRequiredQuantity() {
+        return type.getRequiredQuantity();
     }
 
     @Override
@@ -23,15 +42,14 @@ public class Promotion {
         if (this == o) return true;
         if (!(o instanceof Promotion)) return false;
         Promotion promotion = (Promotion) o;
-        return buyQuantity == promotion.buyQuantity &&
-                freeQuantity == promotion.freeQuantity &&
-                Objects.equals(name, promotion.name) &&
+        return Objects.equals(name, promotion.name) &&
+                type == promotion.type &&
                 Objects.equals(startDate, promotion.startDate) &&
                 Objects.equals(endDate, promotion.endDate);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, buyQuantity, freeQuantity, startDate, endDate);
+        return Objects.hash(name, type, startDate, endDate);
     }
 }

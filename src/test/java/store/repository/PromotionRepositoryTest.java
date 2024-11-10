@@ -8,6 +8,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import store.domain.Promotion;
+import store.domain.PromotionType;
 
 class PromotionRepositoryTest {
 
@@ -29,7 +30,7 @@ class PromotionRepositoryTest {
         @DisplayName("첫 번째 프로모션의 정보를 모두 정상적으로 불러온다")
         void loadFirstPromotionInfomationSuccessfully() {
             List<Promotion> promotions = promotionRepository.getPromotions();
-            Promotion firstPromotion = new Promotion("탄산2+1", 2, 1, LocalDate.of(2024, 1, 1), LocalDate.of(2024, 12, 31));
+            Promotion firstPromotion = new Promotion("탄산2+1", PromotionType.BUY_TWO_GET_ONE_FREE, LocalDate.of(2024, 1, 1), LocalDate.of(2024, 12, 31));
             assertThat(promotions.get(0)).isEqualTo(firstPromotion);
         }
     }

@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import store.domain.Promotion;
 
 import java.time.LocalDate;
+import store.domain.PromotionType;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -22,7 +23,7 @@ class PromotionParserTest {
         @DisplayName("올바른 데이터로 Promotion 객체 생성")
         void parsePromotionSuccessfully() {
             String line = "탄산2+1,2,1,2024-01-01,2024-12-31";
-            Promotion expectedPromotion = new Promotion("탄산2+1", 2, 1, LocalDate.of(2024, 1, 1), LocalDate.of(2024, 12, 31));
+            Promotion expectedPromotion = new Promotion("탄산2+1", PromotionType.BUY_TWO_GET_ONE_FREE, LocalDate.of(2024, 1, 1), LocalDate.of(2024, 12, 31));
             Promotion parsedPromotion = parser.parsePromotion(line);
 
             assertThat(parsedPromotion).isEqualTo(expectedPromotion);
@@ -59,5 +60,15 @@ class PromotionParserTest {
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("잘못된 프로모션 데이터 형식입니다");
         }
+
+        @Test
+        @DisplayName("지원하지 않는 프로모션 타입으로 인해 예외가 발생한다")
+        void throwsExceptionForUnsupportedPromotionType() {
+            String line = "탄산3+2,3,2,2024-01-01,2024-12-31";
+            assertThatThrownBy(() -> parser.parsePromotion(line))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("지원하지 않는 프로모션 타입입니다");
+        }
+
     }
 }
