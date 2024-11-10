@@ -29,6 +29,12 @@ public class Promotion {
         return !today.isBefore(startDate) && !today.isAfter(endDate);
     }
 
+    public int calculateEligibleDiscountUnits(int totalQuantity) {
+        int requiredQuantity = getRequiredQuantity();
+        int fullPromotions = totalQuantity / requiredQuantity;
+        return fullPromotions * requiredQuantity;
+    }
+
     public int calculateDiscount(int quantity, int pricePerUnit) {
         if (!isValidToday()) {
             return 0;
