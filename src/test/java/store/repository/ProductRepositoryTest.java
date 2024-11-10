@@ -1,5 +1,7 @@
 package store.repository;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -9,6 +11,7 @@ import store.domain.Product;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 class ProductRepositoryTest {
 
@@ -46,6 +49,50 @@ class ProductRepositoryTest {
         void containsOutOfStockProducts() {
             List<Product> products = productRepository.getProducts();
             assertThat(products.stream().filter(p -> p.getQuantity() == 0)).hasSize(2);
+        }
+    }
+
+    @Nested
+    @DisplayName("재고 업데이트 테스트")
+    class UpdateStockTest {
+
+        @Test
+        @DisplayName("재고를 정상적으로 업데이트한다")
+        void updateStockSuccessfully() {
+            List<Product> products = productRepository.getProducts();
+            Product cola = products.stream()
+                    .filter(p -> p.getName().equals("콜라") && p.getPromotion() == null)
+                    .findFirst()
+                    .orElseThrow();
+
+            int initialQuantity = cola.getQuantity();
+            int purchaseQuantity = 5;
+
+            Map<Product, Integer> purchaseItems = new HashMap<>();
+            purchaseItems.put(cola, purchaseQuantity);
+
+            productRepository.updateStock(purchaseItems);
+
+            assertThat(cola.getQuantity()).isEqualTo(initialQuantity - purchaseQuantity);
+        }
+
+        @Test
+        @DisplayName("재고가 부족한 경우 예외를 발생시킨다")
+        void throwExceptionWhenStockInsufficient() {
+            List<Product> products = productRepository.getProducts();
+            Product cola = products.stream()
+                    .filter(p -> p.getName().equals("콜라") && p.getPromotion() == null)
+                    .findFirst()
+                    .orElseThrow();
+
+            int purchaseQuantity = cola.getQuantity() + 1;
+
+            Map<Product, Integer> purchaseItems = new HashMap<>();
+            purchaseItems.put(cola, purchaseQuantity);
+
+            assertThatThrownBy(() -> productRepository.updateStock(purchaseItems))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("재고가 부족합니다");
         }
     }
 }

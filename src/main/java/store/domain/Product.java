@@ -31,6 +31,16 @@ public class Product {
         return price;
     }
 
+    public void reduceQuantity(int amount) {
+        if (amount < 0) {
+            throw new IllegalArgumentException("차감할 수량은 음수가 될 수 없습니다.");
+        }
+        if (this.quantity < amount) {
+            throw new IllegalArgumentException("재고가 부족합니다: " + name);
+        }
+        this.quantity -= amount;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

@@ -70,6 +70,15 @@ public class ProductRepository {
         return null;
     }
 
+    public void updateStock(Map<Product, Integer> purchaseItems) {
+        for (Map.Entry<Product, Integer> entry : purchaseItems.entrySet()) {
+            Product product = entry.getKey();
+            int quantityPurchased = entry.getValue();
+
+            product.reduceQuantity(quantityPurchased);
+        }
+    }
+
     public List<Product> getProducts() {
         return products;
     }
