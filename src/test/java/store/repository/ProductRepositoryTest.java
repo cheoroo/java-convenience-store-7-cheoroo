@@ -22,7 +22,7 @@ class ProductRepositoryTest {
         void loadProductsSuccessfully() {
             List<Product> products = productRepository.getProducts();
             assertThat(products).isNotEmpty();
-            assertThat(products.size()).isEqualTo(16);
+            assertThat(products.size()).isEqualTo(18);
         }
 
         @Test
@@ -31,6 +31,13 @@ class ProductRepositoryTest {
             List<Product> products = productRepository.getProducts();
             Product firstProduct = new Product("콜라", 1000, 10, "탄산2+1");
             assertThat(products.get(0)).isEqualTo(firstProduct);
+        }
+
+        @Test
+        @DisplayName("재고가 없는 프로모션 상품이 추가되었는지 확인한다")
+        void containsOutOfStockProducts() {
+            List<Product> products = productRepository.getProducts();
+            assertThat(products.stream().filter(p -> p.getQuantity() == 0)).hasSize(2);
         }
     }
 }
