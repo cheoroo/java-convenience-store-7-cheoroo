@@ -30,6 +30,9 @@ public class Promotion {
     }
 
     public int calculateDiscount(int quantity, int pricePerUnit) {
+        if (!isValidToday()) {
+            return 0;
+        }
         return type.calculateDiscount(quantity, pricePerUnit);
     }
 
