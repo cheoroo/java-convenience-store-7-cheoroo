@@ -11,8 +11,10 @@ import store.utils.FileLoader;
 public class ProductRepository {
     private final List<Product> products = new ArrayList<>();
     private final Map<String, List<Product>> productMap = new LinkedHashMap<>();
+    private final PromotionRepository promotionRepository;
 
-    public ProductRepository() {
+    public ProductRepository(PromotionRepository promotionRepository) {
+        this.promotionRepository = promotionRepository;
         loadProducts();
         addMissingStockProducts();
     }
@@ -23,7 +25,15 @@ public class ProductRepository {
 
     private void processLine(String line) {
         Product product = createProduct(line.split(","));
+        if (product.getPromotion() != null && !isValidPromotion(product.getPromotion())) {
+            throw new IllegalArgumentException("유효하지 않은 프로모션 이름: " + product.getPromotion());
+        }
         productMap.computeIfAbsent(product.getName(), k -> new ArrayList<>()).add(product);
+    }
+
+    private boolean isValidPromotion(String promotionName) {
+        return promotionRepository.getPromotions().stream()
+                .anyMatch(promotion -> promotion.getName().equals(promotionName));
     }
 
     private Product createProduct(String[] data) {

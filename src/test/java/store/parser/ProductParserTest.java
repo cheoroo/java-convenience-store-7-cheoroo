@@ -4,13 +4,15 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import store.domain.Product;
+import store.repository.PromotionRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ProductParserTest {
 
-    private final ProductParser parser = new ProductParser();
+    private final PromotionRepository promotionRepository = new PromotionRepository();
+    private final ProductParser parser = new ProductParser(promotionRepository);
 
     @Nested
     @DisplayName("Product 객체 생성 테스트")
@@ -48,5 +50,15 @@ class ProductParserTest {
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("잘못된 상품 데이터 형식입니다");
         }
+        @Test
+        @DisplayName("유효하지 않은 프로모션 이름이 포함된 상품 데이터 로드시 예외가 발생한다")
+        void throwsExceptionWhenInvalidPromotionName() {
+            String invalidProductLine = "콜라,1000,10,유효하지않은프로모션";
+
+            assertThatThrownBy(() -> parser.parseProduct(invalidProductLine))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("유효하지 않은 프로모션 이름");
+        }
+
     }
 }

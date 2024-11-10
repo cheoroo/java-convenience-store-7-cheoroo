@@ -1,5 +1,6 @@
 package store.view;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -7,13 +8,21 @@ import store.domain.Product;
 import store.repository.ProductRepository;
 
 import java.util.List;
+import store.repository.PromotionRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class OutputViewTest {
 
     private final OutputView outputView = new OutputView();
-    private final ProductRepository productRepository = new ProductRepository();
+    private PromotionRepository promotionRepository;
+    private ProductRepository productRepository;
+
+    @BeforeEach
+    void setUp() {
+        promotionRepository = new PromotionRepository();
+        productRepository = new ProductRepository(promotionRepository);
+    }
 
     @Nested
     @DisplayName("상품 목록 출력 테스트")

@@ -1,5 +1,6 @@
 package store.repository;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -11,7 +12,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class ProductRepositoryTest {
 
-    private final ProductRepository productRepository = new ProductRepository();
+    private PromotionRepository promotionRepository;
+    private ProductRepository productRepository;
+
+    @BeforeEach
+    void setUp() {
+        promotionRepository = new PromotionRepository();
+        productRepository = new ProductRepository(promotionRepository);
+    }
 
     @Nested
     @DisplayName("상품 데이터 로드 테스트")
@@ -27,7 +35,7 @@ class ProductRepositoryTest {
 
         @Test
         @DisplayName("첫 번째 상품의 정보를 모두 정상적으로 불러온다")
-        void loadFirstProductInfomationSuccessfully() {
+        void loadFirstProductInformationSuccessfully() {
             List<Product> products = productRepository.getProducts();
             Product firstProduct = new Product("콜라", 1000, 10, "탄산2+1");
             assertThat(products.get(0)).isEqualTo(firstProduct);
