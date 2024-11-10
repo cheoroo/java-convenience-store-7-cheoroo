@@ -19,6 +19,18 @@ public class Product {
         return name;
     }
 
+    public String getPromotion() {
+        return promotion;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public int getPrice() {
+        return price;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
