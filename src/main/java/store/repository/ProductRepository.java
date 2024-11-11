@@ -79,6 +79,17 @@ public class ProductRepository {
         }
     }
 
+    public boolean exists(String productName) {
+        return products.stream().anyMatch(product -> product.getName().equals(productName));
+    }
+
+    public boolean hasSufficientStock(String productName, int quantity) {
+        return products.stream()
+                .filter(product -> product.getName().equals(productName))
+                .mapToInt(Product::getQuantity)
+                .sum() >= quantity;
+    }
+
     public List<Product> getProducts() {
         return products;
     }
