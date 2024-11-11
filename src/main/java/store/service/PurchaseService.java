@@ -2,6 +2,7 @@ package store.service;
 
 import store.domain.Product;
 import store.domain.Promotion;
+import store.domain.Receipt;
 import store.repository.PromotionRepository;
 
 import java.util.Map;
@@ -14,12 +15,27 @@ public class PurchaseService {
         this.promotionRepository = promotionRepository;
     }
 
-    public int processPurchase(Map<Product, Integer> purchaseItems, boolean isMember) {
-        int totalAmount = calculateTotalAmount(purchaseItems);
-        int promotionDiscount = calculateTotalDiscount(purchaseItems);
-        int membershipDiscount = isMember ? calculateMembershipDiscount(totalAmount - promotionDiscount) : 0;
+    public Receipt generateReceipt(Map<Product, Integer> purchaseItems, boolean isMember) {
+        Receipt receipt = new Receipt();
+        int totalAmount = 0;
+        int totalDiscount = 0;
 
-        return totalAmount - promotionDiscount - membershipDiscount;
+        for (Map.Entry<Product, Integer> entry : purchaseItems.entrySet()) {
+            Product product = entry.getKey();
+            int quantity = entry.getValue();
+            int amount = product.getPrice() * quantity;
+            receipt.addItem(product.getName(), quantity, amount);
+            totalAmount += amount;
+
+            int discount = calculateDiscount(product, quantity, getApplicablePromotion(product));
+            totalDiscount += discount;
+        }
+
+        int finalAmount = calculateFinalAmountWithDiscount(totalAmount, totalDiscount, isMember);
+        receipt.setPromotionDiscount(totalDiscount);
+        receipt.setMembershipDiscount(finalAmount - (totalAmount - totalDiscount));
+        receipt.setFinalAmount(finalAmount);
+        return receipt;
     }
 
     private int calculateTotalAmount(Map<Product, Integer> purchaseItems) {
@@ -89,6 +105,14 @@ public class PurchaseService {
     private String formatInsufficientStockMessage(Product product, int unavailableQuantity) {
         return String.format("현재 %s %d개는 프로모션 할인이 적용되지 않습니다. 그래도 구매하시겠습니까? (Y/N)",
                 product.getName(), unavailableQuantity);
+    }
+
+    private int calculateFinalAmountWithDiscount(int totalAmount, int totalDiscount, boolean isMember) {
+        int membershipDiscount = 0;
+        if (isMember) {
+            membershipDiscount = calculateMembershipDiscount(totalAmount - totalDiscount);
+        }
+        return totalAmount - totalDiscount - membershipDiscount;
     }
 
     private int calculateMembershipDiscount(int amount) {

@@ -90,6 +90,13 @@ public class ProductRepository {
                 .sum() >= quantity;
     }
 
+    public Product getProductByName(String name) {
+        return products.stream()
+                .filter(product -> product.getName().equals(name))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("[ERROR] 존재하지 않는 상품입니다."));
+    }
+
     public List<Product> getProducts() {
         return products;
     }

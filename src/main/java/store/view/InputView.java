@@ -111,4 +111,9 @@ public class InputView {
             System.out.println("[ERROR] 입력이 올바르지 않습니다.");
         }
     }
+
+    public boolean askForConfirmation(String message) {
+        return confirmInput(message);
+    }
+
 }
