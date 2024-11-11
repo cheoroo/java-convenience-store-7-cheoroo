@@ -19,42 +19,48 @@ public class PromotionService {
                 .findFirst();
     }
 
-    public int calculateDiscount(Product product, int quantity) {
-        return getApplicablePromotion(product)
-                .filter(Promotion::isValidToday)
-                .map(promotion -> calculateDiscountAmount(promotion, quantity, product.getPrice()))
-                .orElse(0);
-    }
-
-    private int calculateDiscountAmount(Promotion promotion, int quantity, int pricePerUnit) {
-        return promotion.calculateDiscount(quantity, pricePerUnit);
-    }
-
-    public String checkPromotionAvailability(Product product, int desiredQuantity) {
-        return getApplicablePromotion(product)
-                .filter(Promotion::isValidToday)
-                .map(promotion -> buildAvailabilityMessage(promotion, product, desiredQuantity))
-                .orElse("");
-    }
-
-    private String buildAvailabilityMessage(Promotion promotion, Product product, int desiredQuantity) {
-        int requiredQuantity = promotion.getRequiredQuantity();
-        if (desiredQuantity < requiredQuantity) {
-            return formatAdditionalQuantityMessage(product, requiredQuantity - desiredQuantity);
+    public int calculateFreeQuantity(int quantity, Product product) {
+        Optional<Promotion> promotion = getApplicablePromotion(product);
+        if (promotion.isEmpty() || !promotion.get().isValidToday()) {
+            return 0;
         }
-        if (desiredQuantity > product.getQuantity()) {
-            return formatInsufficientStockMessage(product, desiredQuantity - product.getQuantity());
+
+        Promotion p = promotion.get();
+        int requiredQuantity = p.getRequiredQuantity();
+        int sets = quantity / requiredQuantity;
+        return sets * p.getType().getFreeQuantity();
+    }
+
+    public String checkPromotionAddFreeAvailability(Product product, int desiredQuantity) {
+        Optional<Promotion> promotion = getApplicablePromotion(product);
+        if (promotion.isEmpty() || !promotion.get().isValidToday()) {
+            return "";
+        }
+
+        int requiredQuantity = promotion.get().getRequiredQuantity();
+        int remainder = desiredQuantity % requiredQuantity;
+        int additionalQuantity = remainder == 0 ? 0 : requiredQuantity - remainder;
+
+        if (additionalQuantity > 0) {
+            return String.format("현재 %s은(는) %d개를 무료로 더 받을 수 있습니다. 추가하시겠습니까? (Y/N)", product.getName(), additionalQuantity);
         }
         return "";
     }
 
-    private String formatAdditionalQuantityMessage(Product product, int additionalQuantity) {
-        return String.format("현재 %s은(는) %d개를 추가로 구매하면 혜택을 받을 수 있습니다. 추가하시겠습니까? (Y/N)",
-                product.getName(), additionalQuantity);
-    }
+    public String checkPromotionInsufficientDiscountAvailability(Product product, int desiredQuantity) {
+        Optional<Promotion> promotion = getApplicablePromotion(product);
+        if (promotion.isEmpty() || !promotion.get().isValidToday()) {
+            return "";
+        }
 
-    private String formatInsufficientStockMessage(Product product, int unavailableQuantity) {
-        return String.format("현재 %s %d개는 프로모션 할인이 적용되지 않습니다. 그래도 구매하시겠습니까? (Y/N)",
-                product.getName(), unavailableQuantity);
+        int requiredQuantity = promotion.get().getRequiredQuantity();
+        int applicableSets = desiredQuantity / requiredQuantity;
+        int applicableQuantity = applicableSets * requiredQuantity;
+        int insufficientQuantity = desiredQuantity - applicableQuantity;
+
+        if (insufficientQuantity > 0) {
+            return String.format("현재 %s %d개는 프로모션 할인이 적용되지 않습니다. 그래도 구매하시겠습니까? (Y/N)", product.getName(), insufficientQuantity);
+        }
+        return "";
     }
 }

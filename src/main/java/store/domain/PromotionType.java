@@ -21,4 +21,8 @@ public enum PromotionType {
     public int getRequiredQuantity() {
         return buyQuantity + freeQuantity;
     }
+
+    public int getFreeQuantity() {
+        return freeQuantity;
+    }
 }

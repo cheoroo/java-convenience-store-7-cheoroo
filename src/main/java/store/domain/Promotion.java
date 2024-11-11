@@ -1,5 +1,6 @@
 package store.domain;
 
+import camp.nextstep.edu.missionutils.DateTimes;
 import java.time.LocalDate;
 import java.util.Objects;
 
@@ -24,15 +25,13 @@ public class Promotion {
         return type;
     }
 
-    public boolean isValidToday() {
-        LocalDate today = LocalDate.now();
-        return !today.isBefore(startDate) && !today.isAfter(endDate);
+    public boolean isValidOn(LocalDate date) {
+        return !date.isBefore(startDate) && !date.isAfter(endDate);
     }
 
-    public int calculateEligibleDiscountUnits(int totalQuantity) {
-        int requiredQuantity = getRequiredQuantity();
-        int fullPromotions = totalQuantity / requiredQuantity;
-        return fullPromotions * requiredQuantity;
+    public boolean isValidToday() {
+        LocalDate today = DateTimes.now().toLocalDate();
+        return isValidOn(today);
     }
 
     public int calculateDiscount(int quantity, int pricePerUnit) {

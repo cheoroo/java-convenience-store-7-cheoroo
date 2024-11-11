@@ -84,10 +84,15 @@ public class ProductRepository {
     }
 
     public boolean hasSufficientStock(String productName, int quantity) {
-        return products.stream()
+        int totalStock = products.stream()
                 .filter(product -> product.getName().equals(productName))
                 .mapToInt(Product::getQuantity)
-                .sum() >= quantity;
+                .sum();
+
+        if (totalStock < quantity) {
+            throw new IllegalArgumentException("[ERROR] 재고 수량을 초과하여 구매할 수 없습니다. 다시 입력해 주세요.");
+        }
+        return true;
     }
 
     public Product getProductByName(String name) {

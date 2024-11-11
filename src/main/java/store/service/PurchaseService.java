@@ -21,45 +21,75 @@ public class PurchaseService {
 
     public Receipt generateReceipt(Map<Product, Integer> purchaseItems, boolean isMember) {
         Receipt receipt = new Receipt();
-        int totalAmount = 0;
-        int totalQuantity = 0;
-        int totalDiscount = 0;
+        Totals totals = calculateTotals(purchaseItems, receipt);
 
+        int membershipDiscount = calculateMembershipDiscount(totals.totalAmount - totals.totalDiscount, isMember);
+        int finalAmount = totals.totalAmount - totals.totalDiscount - membershipDiscount;
+
+        setReceiptTotals(receipt, totals, membershipDiscount, finalAmount);
+
+        return receipt;
+    }
+
+    private Totals calculateTotals(Map<Product, Integer> purchaseItems, Receipt receipt) {
+        Totals totals = new Totals();
         LocalDate currentDate = DateTimes.now().toLocalDate();
 
         for (Map.Entry<Product, Integer> entry : purchaseItems.entrySet()) {
-            Product product = entry.getKey();
-            int quantity = entry.getValue();
-            int amount = product.getPrice() * quantity;
-
-            receipt.addItem(product.getName(), quantity, amount);
-            totalAmount += amount;
-            totalQuantity += quantity;
-
-            Optional<Promotion> promotion = promotionService.getApplicablePromotion(product);
-            if (promotion.isPresent() && promotion.get().isValidOn(currentDate)) {
-                int freeQuantity = promotionService.calculateFreeQuantity(quantity, product);
-                if (freeQuantity > 0) {
-                    receipt.addFreeItem(product.getName(), freeQuantity);
-                }
-                int discount = promotion.get().calculateDiscount(quantity, product.getPrice());
-                totalDiscount += discount;
-            }
+            processReceiptItem(entry, receipt, totals, currentDate);
         }
+        return totals;
+    }
 
-        int membershipDiscount = 0;
-        if (isMember) {
-            membershipDiscount = calculateMembershipDiscount(totalAmount - totalDiscount);
+    private void processReceiptItem(Map.Entry<Product, Integer> entry, Receipt receipt, Totals totals, LocalDate currentDate) {
+        Product product = entry.getKey();
+        int quantity = entry.getValue();
+        int amount = product.getPrice() * quantity;
+
+        receipt.addItem(product.getName(), quantity, amount);
+        totals.totalAmount += amount;
+        totals.totalQuantity += quantity;
+
+        int discount = calculateDiscount(product, quantity, receipt, currentDate);
+        totals.totalDiscount += discount;
+    }
+
+    private int calculateDiscount(Product product, int quantity, Receipt receipt, LocalDate currentDate) {
+        Optional<Promotion> promotion = promotionService.getApplicablePromotion(product);
+        if (promotion.isPresent() && promotion.get().isValidOn(currentDate)) {
+            int freeQuantity = promotionService.calculateFreeQuantity(quantity, product);
+            addFreeItemsToReceipt(receipt, product, freeQuantity);
+            return promotion.get().calculateDiscount(quantity, product.getPrice());
         }
-        int finalAmount = totalAmount - totalDiscount - membershipDiscount;
+        return 0;
+    }
 
-        receipt.setTotalAmount(totalAmount);
-        receipt.setTotalQuantity(totalQuantity);
-        receipt.setPromotionDiscount(totalDiscount);
+    private void addFreeItemsToReceipt(Receipt receipt, Product product, int freeQuantity) {
+        if (freeQuantity > 0) {
+            receipt.addFreeItem(product.getName(), freeQuantity);
+        }
+    }
+
+    private int calculateMembershipDiscount(int amount, boolean isMember) {
+        if (!isMember) {
+            return 0;
+        }
+        int discount = (int) (amount * 0.3);
+        return Math.min(discount, 8000);
+    }
+
+    private void setReceiptTotals(Receipt receipt, Totals totals, int membershipDiscount, int finalAmount) {
+        receipt.setTotalAmount(totals.totalAmount);
+        receipt.setTotalQuantity(totals.totalQuantity);
+        receipt.setPromotionDiscount(totals.totalDiscount);
         receipt.setMembershipDiscount(membershipDiscount);
         receipt.setFinalAmount(finalAmount);
+    }
 
-        return receipt;
+    private static class Totals {
+        int totalAmount = 0;
+        int totalQuantity = 0;
+        int totalDiscount = 0;
     }
 
     private int calculateMembershipDiscount(int amount) {

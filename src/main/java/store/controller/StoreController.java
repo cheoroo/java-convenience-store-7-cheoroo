@@ -23,9 +23,9 @@ public class StoreController {
 
     public StoreController() {
         promotionRepository = new PromotionRepository();
-        productRepository = new ProductRepository(promotionRepository);
         promotionService = new PromotionService(promotionRepository);
-        purchaseService = new PurchaseService(promotionRepository);
+        productRepository = new ProductRepository(promotionRepository);
+        purchaseService = new PurchaseService(promotionRepository, promotionService);
         inputView = new InputView(productRepository);
         outputView = new OutputView();
     }
@@ -34,30 +34,58 @@ public class StoreController {
         outputView.printWelcomeMessage();
         outputView.printProducts(productRepository.getProducts());
         Map<Product, Integer> purchaseItems = new HashMap<>();
-        processPurchases(purchaseItems);
+
+        boolean isShopping = true;
+        while (isShopping) {
+            processPurchases(purchaseItems);
+            isShopping = inputView.askForAdditionalPurchase();
+        }
+
         boolean isMember = inputView.askForMembershipDiscount();
         Receipt receipt = purchaseService.generateReceipt(purchaseItems, isMember);
         outputView.printReceipt(receipt);
-        outputView.printGoodbyeMessage();
     }
 
     private void processPurchases(Map<Product, Integer> purchaseItems) {
-        do {
-            Purchase purchase = inputView.readPurchase();
+        Purchase purchase = inputView.readPurchase();
+        if (purchase != null) {
             handlePurchase(purchase, purchaseItems);
-        } while (inputView.askForAdditionalPurchase());
+        }
     }
 
     private void handlePurchase(Purchase purchase, Map<Product, Integer> purchaseItems) {
         for (Map.Entry<String, Integer> entry : purchase.getItems().entrySet()) {
-            Product product = productRepository.getProductByName(entry.getKey());
-            int quantity = entry.getValue();
-            String message = promotionService.checkPromotionAvailability(product, quantity);
-            if (!message.isEmpty() && !inputView.askForConfirmation(message)) {
-                continue;
+            try {
+                Product product = productRepository.getProductByName(entry.getKey());
+                int quantity = entry.getValue();
+
+                if (!productRepository.hasSufficientStock(product.getName(), quantity)) {
+                    throw new IllegalArgumentException("[ERROR] 재고 수량을 초과하여 구매할 수 없습니다. 다시 입력해 주세요.");
+                }
+
+                String addFreeMessage = promotionService.checkPromotionAddFreeAvailability(product, quantity);
+                if (!addFreeMessage.isEmpty()) {
+                    boolean addFree = inputView.askToAddFreeItems(addFreeMessage);
+                    if (addFree) {
+                        int freeQuantity = promotionService.calculateFreeQuantity(quantity, product);
+                        purchaseItems.merge(product, freeQuantity, Integer::sum);
+                        product.reduceQuantity(freeQuantity);
+                    }
+                }
+
+                String insufficientDiscountMessage = promotionService.checkPromotionInsufficientDiscountAvailability(product, quantity);
+                if (!insufficientDiscountMessage.isEmpty()) {
+                    boolean confirm = inputView.askToPayForItemsWithoutDiscount(insufficientDiscountMessage);
+                    if (!confirm) {
+                        continue;
+                    }
+                }
+
+                product.reduceQuantity(quantity);
+                purchaseItems.merge(product, quantity, Integer::sum);
+            } catch (IllegalArgumentException e) {
+                outputView.printError(e.getMessage());
             }
-            product.reduceQuantity(quantity);
-            purchaseItems.put(product, quantity);
         }
     }
 }
