@@ -6,6 +6,7 @@ import store.domain.Receipt;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.Locale;
+import store.domain.ReceiptItem;
 
 public class OutputView {
 
@@ -14,20 +15,11 @@ public class OutputView {
         System.out.println("현재 보유하고 있는 상품입니다.\n");
     }
 
-    public void printPurchasePrompt() {
-        System.out.println("구매하실 상품명과 수량을 입력해 주세요. (예: [사이다-2],[감자칩-1])");
-    }
-
     public void printProducts(List<Product> products) {
-        System.out.print(getProductListDisplay(products));
-    }
-
-    public String getProductListDisplay(List<Product> products) {
-        StringBuilder sb = new StringBuilder();
         for (Product product : products) {
-            sb.append(formatProductDisplay(product)).append("\n");
+            System.out.println(formatProductDisplay(product));
         }
-        return sb.toString();
+        System.out.println();
     }
 
     private String formatProductDisplay(Product product) {
@@ -52,23 +44,37 @@ public class OutputView {
         return "재고 없음";
     }
 
-    private String formatPrice(int price) {
-        return NumberFormat.getNumberInstance(Locale.KOREA).format(price);
-    }
-
-    public void printMessage(String message) {
-        System.out.println(message);
-    }
-
     public void printReceipt(Receipt receipt) {
-        System.out.println(receipt.getReceiptDisplay());
+        System.out.println("==============W 편의점================");
+        System.out.println(String.format("%-12s %6s %10s", "상품명", "수량", "금액"));
+        for (ReceiptItem item : receipt.getItems()) {
+            System.out.println(String.format("%-12s %6d %10s",
+                    item.getName(),
+                    item.getQuantity(),
+                    formatPrice(item.getAmount())
+            ));
+        }
+        System.out.println("=============증    정===============");
+        for (ReceiptItem freeItem : receipt.getFreeItems()) {
+            System.out.println(String.format("%-12s %6d",
+                    freeItem.getName(),
+                    freeItem.getQuantity()
+            ));
+        }
+        System.out.println("====================================");
+        System.out.println(String.format("%-12s %6d %10s", "총구매액", receipt.getTotalQuantity(), formatPrice(receipt.getTotalAmount())));
+        System.out.println(String.format("%-12s %16s", "행사할인", "-" + formatPrice(receipt.getPromotionDiscount())));
+        System.out.println(String.format("%-12s %16s", "멤버십할인", "-" + formatPrice(receipt.getMembershipDiscount())));
+        System.out.println(String.format("%-12s %16s", "내실돈", formatPrice(receipt.getFinalAmount())));
+        System.out.println();
+        System.out.println("이용해 주셔서 감사합니다.");
     }
 
     public void printError(String message) {
-        System.out.println("[ERROR] " + message);
+        System.out.println(message);
     }
 
-    public void printGoodbyeMessage() {
-        System.out.println("이용해 주셔서 감사합니다.");
+    private String formatPrice(int price) {
+        return NumberFormat.getNumberInstance(Locale.KOREA).format(price);
     }
 }

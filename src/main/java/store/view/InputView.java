@@ -16,31 +16,35 @@ public class InputView {
     }
 
     public Purchase readPurchase() {
-        String input = readInputLine("구매하실 상품명과 수량을 입력해 주세요. (예: [사이다-2],[감자칩-1])");
-        return new Purchase(parseInput(input));
+        while (true) {
+            try {
+                String input = readInputLine("구매하실 상품명과 수량을 입력해 주세요. (예: [사이다-2],[감자칩-1])");
+                return new Purchase(parseInput(input));
+            } catch (IllegalArgumentException e) {
+                if (e.getMessage().contains("재고 수량을 초과")) {
+                    System.out.println(e.getMessage());
+                    break;
+                } else {
+                    System.out.println(e.getMessage());
+                }
+            }
+        }
+        return null;
     }
 
     public boolean askForAdditionalPurchase() {
-        return confirmInput("추가 구매를 진행하시겠습니까? (Y/N)");
+        return confirmInput("감사합니다. 구매하고 싶은 다른 상품이 있나요? (Y/N)");
     }
 
     public boolean askForMembershipDiscount() {
-        return confirmInput("멤버십 할인을 적용하시겠습니까? (Y/N)");
+        return confirmInput("멤버십 할인을 받으시겠습니까? (Y/N)");
     }
 
-    public boolean askToAddFreeItems(String productName, int quantityToAdd) {
-        String message = String.format(
-                "현재 %s을(를) %d개 추가로 가져오면 프로모션 혜택을 받을 수 있습니다. 추가하시겠습니까? (Y/N)",
-                productName, quantityToAdd
-        );
+    public boolean askToAddFreeItems(String message) {
         return confirmInput(message);
     }
 
-    public boolean askToPayForItemsWithoutDiscount(String productName, int quantityWithoutDiscount) {
-        String message = String.format(
-                "현재 %s %d개는 프로모션 할인이 적용되지 않습니다. 그래도 구매하시겠습니까? (Y/N)",
-                productName, quantityWithoutDiscount
-        );
+    public boolean askToPayForItemsWithoutDiscount(String message) {
         return confirmInput(message);
     }
 
@@ -90,9 +94,7 @@ public class InputView {
         if (!productRepository.exists(productName)) {
             throw new IllegalArgumentException("[ERROR] 존재하지 않는 상품입니다. 다시 입력해 주세요.");
         }
-        if (!productRepository.hasSufficientStock(productName, quantity)) {
-            throw new IllegalArgumentException("[ERROR] 재고 수량을 초과하여 구매할 수 없습니다. 다시 입력해 주세요.");
-        }
+        productRepository.hasSufficientStock(productName, quantity);
     }
 
     private void validateQuantity(String quantity) {
@@ -111,9 +113,4 @@ public class InputView {
             System.out.println("[ERROR] 입력이 올바르지 않습니다.");
         }
     }
-
-    public boolean askForConfirmation(String message) {
-        return confirmInput(message);
-    }
-
 }

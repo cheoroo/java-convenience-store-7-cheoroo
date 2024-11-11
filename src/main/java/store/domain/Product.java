@@ -36,7 +36,7 @@ public class Product {
             throw new IllegalArgumentException("차감할 수량은 음수가 될 수 없습니다.");
         }
         if (this.quantity < amount) {
-            throw new IllegalArgumentException("재고가 부족합니다: " + name);
+            throw new IllegalArgumentException("[ERROR] 재고 수량을 초과하여 구매할 수 없습니다. 다시 입력해 주세요.");
         }
         this.quantity -= amount;
     }
