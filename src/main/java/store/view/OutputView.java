@@ -1,6 +1,7 @@
 package store.view;
 
 import store.domain.Product;
+import store.domain.Receipt;
 
 import java.text.NumberFormat;
 import java.util.List;
@@ -53,5 +54,21 @@ public class OutputView {
 
     private String formatPrice(int price) {
         return NumberFormat.getNumberInstance(Locale.KOREA).format(price);
+    }
+
+    public void printMessage(String message) {
+        System.out.println(message);
+    }
+
+    public void printReceipt(Receipt receipt) {
+        System.out.println(receipt.getReceiptDisplay());
+    }
+
+    public void printError(String message) {
+        System.out.println("[ERROR] " + message);
+    }
+
+    public void printGoodbyeMessage() {
+        System.out.println("이용해 주셔서 감사합니다.");
     }
 }
