@@ -45,29 +45,47 @@ public class OutputView {
     }
 
     public void printReceipt(Receipt receipt) {
+        printHeader();
+        printItems(receipt.getItems());
+        printFreeItems(receipt.getFreeItems());
+        printTotals(receipt);
+    }
+
+    private void printHeader() {
         System.out.println("==============W 편의점================");
         System.out.println(String.format("%-12s %6s %10s", "상품명", "수량", "금액"));
-        for (ReceiptItem item : receipt.getItems()) {
+    }
+
+    private void printItems(List<ReceiptItem> items) {
+        for (ReceiptItem item : items) {
             System.out.println(String.format("%-12s %6d %10s",
                     item.getName(),
                     item.getQuantity(),
                     formatPrice(item.getAmount())
             ));
         }
+    }
+
+    private void printFreeItems(List<ReceiptItem> freeItems) {
         System.out.println("=============증    정===============");
-        for (ReceiptItem freeItem : receipt.getFreeItems()) {
+        for (ReceiptItem freeItem : freeItems) {
             System.out.println(String.format("%-12s %6d",
                     freeItem.getName(),
                     freeItem.getQuantity()
             ));
         }
+    }
+
+    private void printTotals(Receipt receipt) {
         System.out.println("====================================");
-        System.out.println(String.format("%-12s %6d %10s", "총구매액", receipt.getTotalQuantity(), formatPrice(receipt.getTotalAmount())));
-        System.out.println(String.format("%-12s %16s", "행사할인", "-" + formatPrice(receipt.getPromotionDiscount())));
-        System.out.println(String.format("%-12s %16s", "멤버십할인", "-" + formatPrice(receipt.getMembershipDiscount())));
-        System.out.println(String.format("%-12s %16s", "내실돈", formatPrice(receipt.getFinalAmount())));
-        System.out.println();
-        System.out.println("이용해 주셔서 감사합니다.");
+        System.out.println(String.format("%-12s %6d %10s", "총구매액",
+                receipt.getTotalQuantity(), formatPrice(receipt.getTotalAmount())));
+        System.out.println(String.format("%-12s %16s", "행사할인",
+                "-" + formatPrice(receipt.getPromotionDiscount())));
+        System.out.println(String.format("%-12s %16s", "멤버십할인",
+                "-" + formatPrice(receipt.getMembershipDiscount())));
+        System.out.println(String.format("%-12s %16s", "내실돈",
+                formatPrice(receipt.getFinalAmount())));
     }
 
     public void printError(String message) {

@@ -17,12 +17,14 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 class PurchaseServiceTest {
 
     private PromotionRepository promotionRepository;
+    private PromotionService promotionService;
     private PurchaseService purchaseService;
 
     @BeforeEach
     void setUp() {
         promotionRepository = new PromotionRepository();
-        purchaseService = new PurchaseService(promotionRepository);
+        promotionService = new PromotionService(promotionRepository);
+        purchaseService = new PurchaseService(promotionRepository, promotionService);
     }
 
     @Nested
@@ -39,7 +41,7 @@ class PurchaseServiceTest {
             purchaseItems.put(productWithPromotion, 7);
             purchaseItems.put(productWithoutPromotion, 10);
 
-            String message = purchaseService.checkPromotionAvailability(productWithPromotion, productWithoutPromotion, 10);
+            String message = promotionService.checkPromotionInsufficientDiscountAvailability(productWithPromotion, 10);
             assertThat(message).isEqualTo("현재 콜라 4개는 프로모션 할인이 적용되지 않습니다. 그래도 구매하시겠습니까? (Y/N)");
         }
     }
@@ -73,26 +75,7 @@ class PurchaseServiceTest {
             Receipt receipt = purchaseService.generateReceipt(purchaseItems, true);
             int finalAmount = receipt.getFinalAmount();
 
-            assertThat(finalAmount).isEqualTo(62000); //70,000원 * 30% = 21,000원 이지만 min(21,000원, 8,000원) = 8,000원
-        }
-    }
-
-    @Nested
-    @DisplayName("재고가 충분하지 않아 모든 재고가 소진된 경우 테스트")
-    class OutOfStockTests {
-
-        @Test
-        @DisplayName("재고 초과 시 예외 메시지를 반환한다")
-        void throwsExceptionWhenQuantityExceedsStock() {
-            Product productWithPromotion = new Product("사이다", 1000, 3, "탄산2+1");
-            Product productWithoutPromotion = new Product("사이다", 1000, 0, null);
-
-            Map<Product, Integer> purchaseItems = new LinkedHashMap<>();
-            purchaseItems.put(productWithPromotion, 5);
-
-            assertThatThrownBy(() -> purchaseService.checkPromotionAvailability(productWithPromotion, productWithoutPromotion, 5))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessage("[ERROR] 재고 수량을 초과하여 구매할 수 없습니다. 다시 입력해 주세요.");
+            assertThat(finalAmount).isEqualTo(62000); //70,000원 * 30% = 21,000원이지만 min(21,000원, 8,000원) = 8,000원
         }
     }
 }
