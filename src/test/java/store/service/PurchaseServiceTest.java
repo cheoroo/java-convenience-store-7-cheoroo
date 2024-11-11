@@ -5,6 +5,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import store.domain.Product;
+import store.domain.Receipt;
 import store.repository.PromotionRepository;
 
 import java.util.LinkedHashMap;
@@ -55,7 +56,9 @@ class PurchaseServiceTest {
             Map<Product, Integer> purchaseItems = new LinkedHashMap<>();
             purchaseItems.put(productWithPromotion, 10);
 
-            int finalAmount = purchaseService.processPurchase(purchaseItems, true);
+            Receipt receipt = purchaseService.generateReceipt(purchaseItems, true);
+            int finalAmount = receipt.getFinalAmount();
+
             assertThat(finalAmount).isEqualTo(4900);
         }
 
@@ -67,7 +70,9 @@ class PurchaseServiceTest {
             Map<Product, Integer> purchaseItems = new LinkedHashMap<>();
             purchaseItems.put(productWithPromotion, 10);
 
-            int finalAmount = purchaseService.processPurchase(purchaseItems, true);
+            Receipt receipt = purchaseService.generateReceipt(purchaseItems, true);
+            int finalAmount = receipt.getFinalAmount();
+
             assertThat(finalAmount).isEqualTo(62000); //70,000원 * 30% = 21,000원 이지만 min(21,000원, 8,000원) = 8,000원
         }
     }

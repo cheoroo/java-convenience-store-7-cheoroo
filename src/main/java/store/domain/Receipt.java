@@ -36,6 +36,10 @@ public class Receipt {
         this.finalAmount = finalAmount;
     }
 
+    public int getFinalAmount() {
+        return finalAmount;
+    }
+
     public String getReceiptDisplay() {
         StringBuilder sb = new StringBuilder();
         sb.append("==============W 편의점================\n");
